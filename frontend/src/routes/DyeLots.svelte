@@ -1,6 +1,8 @@
 <script>
   import { onMount } from 'svelte';
+  import { link } from 'svelte-spa-router';
   import { api, VAT_STATUS, toLocalInput, fromLocalInput } from '../lib/api.js';
+  import { pendingHandovers } from '../lib/handover.js';
 
   let vats = [];
   let rows = [];
@@ -88,6 +90,15 @@
 <h1 class="page-title">染程</h1>
 <p class="page-sub">仅 ready / dyeing 染缸可开缸；提交后染缸自动变为染色中。</p>
 
+{#if $pendingHandovers > 0}
+  <div class="lock-banner">
+    ⚠ 现有 <strong>{$pendingHandovers}</strong> 条夜班交接待接班确认，
+    全场<strong>禁止新建染程</strong>，请先到
+    <a href="/handovers" use:link>夜班交接</a>
+    完成接班确认。
+  </div>
+{/if}
+
 <div class="panel" style="margin-bottom:1rem;">
   <div class="form-grid">
     <label
@@ -106,7 +117,9 @@
     <label>操作员 <input bind:value={form.operatorName} /></label>
   </div>
   <div class="toolbar">
-    <button class="btn" type="button" on:click={save}>{editing ? '保存修改' : '新建染程'}</button>
+    <button class="btn" type="button" disabled={$pendingHandovers > 0 && !editing} on:click={save}
+      >{editing ? '保存修改' : '新建染程'}</button
+    >
     {#if editing}
       <button class="btn ghost" type="button" on:click={() => (editing = null)}>取消</button>
     {/if}

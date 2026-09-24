@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import get_db
+from app.handover_guard import ensure_no_pending_handover
 from app.models.dye_lot import DyeLot
 from app.models.user import User
 from app.models.vat import Vat
@@ -37,6 +38,7 @@ def create_dye_lot(
     vat = db.query(Vat).filter(Vat.id == payload.vat_id).first()
     if not vat:
         raise HTTPException(status_code=400, detail="染缸不存在")
+    ensure_no_pending_handover(db, "新建染程")
     if vat.status not in ALLOWED_VAT_STATUSES:
         raise HTTPException(
             status_code=409,

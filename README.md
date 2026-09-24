@@ -1,6 +1,6 @@
 # LoomLot-01 · 染坊缸染与色牢度抽检
 
-靛蓝染坊台：按 **染坊 → 染缸 → 染程 → 色牢度** 工序推进，聚焦缸染调度与抽检，不是库存出入库系统。
+靛蓝染坊台：按 **染坊 → 染缸 → 染程 → 色牢度** 工序推进，辅以**夜班交接**交班/接班闸口，聚焦缸染调度与抽检，不是库存出入库系统。
 
 ## 技术栈
 
@@ -51,22 +51,29 @@ docker compose down
 2. **Vat** — `dyeHouseId`, `vatCode`, `fiberType`, `capacityL`, `status` ∈ `ready|dyeing|drain`
 3. **DyeLot** — `vatId`, `recipeName`, `fabricKg`, `startedAt`, `operatorName`
 4. **FastnessCheck** — `dyeLotId`, `checkedAt`, `washFastness`(1–5), `rubFastness`(>0), `tempC`, `notes`
+5. **NightHandover**（夜班交接条）— `handoverById`, `takeoverById`, `handedAt`, `confirmedAt`(可空), `activeVatCount`（在染缸数快照）, `notes`, 派生 `isPending`
 
 ### 规则
 
 - 仅当染缸状态为 `ready` 或 `dyeing` 时可新建染程，否则 409
 - 新建染程后，染缸状态自动设为 `dyeing`
 - 可选接口：`POST /api/vats/{id}/drain` 将染缸置为 `drain`
+- 夜班交接：交班人与接班人不得相同（400）；`confirmedAt` 未写即为**待接**
+- 存在任一条待接交接时，**全场禁止新建染程与新建色牢度抽检**，统一返回 409（中文提示）；接班确认后自动恢复
+- `POST /api/night-handovers/{id}/confirm` 仅**接班人本人或主管（admin）**可调用，其他人 403；接班确认时刻不得早于交班时刻，否则 400；重复确认 409
+- 看板 `nightHandoverPendingCount` 与交接列表中待接行数一致
+- 种子数据自带一条待接交接（dyer 交班、admin 接班），用于演示开立拦截
 
 ## 主要 API
 
 - `POST /api/auth/login`（OAuth2 表单）
-- `GET /api/auth/me`
+- `GET /api/auth/me` · `GET /api/auth/users`
 - `GET/POST/PUT/DELETE /api/dye-houses`
 - `GET/POST/PUT/DELETE /api/vats` · `POST /api/vats/{id}/drain`
 - `GET/POST/PUT/DELETE /api/dye-lots`
 - `GET/POST/PUT/DELETE /api/fastness-checks`
-- `GET /api/dashboard/stats`
+- `GET/POST /api/night-handovers`（`?status=pending|confirmed`）· `GET /api/night-handovers/pending-count` · `POST /api/night-handovers/{id}/confirm`（body 可传 `confirmedAt`，不传取当前时刻）
+- `GET /api/dashboard/stats`（含 `nightHandoverPendingCount`）
 
 除登录外需 `Authorization: Bearer <token>`。字段对外为 camelCase。
 

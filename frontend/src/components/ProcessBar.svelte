@@ -1,6 +1,7 @@
 <script>
   import { link, location } from 'svelte-spa-router';
   import { user, clearSession } from '../lib/auth.js';
+  import { pendingHandovers } from '../lib/handover.js';
   import { push } from 'svelte-spa-router';
 
   export let steps = [
@@ -8,6 +9,7 @@
     { path: '/vats', label: '染缸', hint: '纤维与容量' },
     { path: '/lots', label: '染程', hint: '配方开缸' },
     { path: '/checks', label: '色牢度', hint: '抽检回写' },
+    { path: '/handovers', label: '夜班交接', hint: '交班接班确认' },
   ];
 
   function logout() {
@@ -49,7 +51,12 @@
       >
         <span class="idx">{i + 1}</span>
         <span class="meta">
-          <span class="label">{step.label}</span>
+          <span class="label"
+            >{step.label}
+            {#if step.path === '/handovers' && $pendingHandovers > 0}
+              <em class="pending-dot" title="有待接班的夜班交接">{$pendingHandovers} 待接</em>
+            {/if}
+          </span>
           <span class="hint">{step.hint}</span>
         </span>
       </a>
@@ -195,6 +202,17 @@
   .hint {
     font-size: 0.7rem;
     opacity: 0.75;
+  }
+
+  .pending-dot {
+    font-style: normal;
+    margin-left: 0.4rem;
+    font-size: 0.68rem;
+    color: var(--warn);
+    border: 1px solid rgba(224, 168, 74, 0.6);
+    border-radius: 999px;
+    padding: 0.02rem 0.45rem;
+    vertical-align: middle;
   }
 
   .rail {

@@ -1,6 +1,8 @@
 <script>
   import { onMount } from 'svelte';
+  import { link } from 'svelte-spa-router';
   import { api, toLocalInput, fromLocalInput } from '../lib/api.js';
+  import { pendingHandovers } from '../lib/handover.js';
 
   let lots = [];
   let rows = [];
@@ -87,6 +89,15 @@
 <h1 class="page-title">色牢度抽检</h1>
 <p class="page-sub">耐洗 1–5 级；摩擦牢度须大于 0；记录检测温度。</p>
 
+{#if $pendingHandovers > 0}
+  <div class="lock-banner">
+    ⚠ 现有 <strong>{$pendingHandovers}</strong> 条夜班交接待接班确认，
+    全场<strong>禁止新建色牢度抽检</strong>，请先到
+    <a href="/handovers" use:link>夜班交接</a>
+    完成接班确认。
+  </div>
+{/if}
+
 <div class="panel" style="margin-bottom:1rem;">
   <div class="form-grid">
     <label
@@ -104,7 +115,9 @@
     <label>备注 <input bind:value={form.notes} /></label>
   </div>
   <div class="toolbar">
-    <button class="btn" type="button" on:click={save}>{editing ? '保存修改' : '登记抽检'}</button>
+    <button class="btn" type="button" disabled={$pendingHandovers > 0 && !editing} on:click={save}
+      >{editing ? '保存修改' : '登记抽检'}</button
+    >
     {#if editing}
       <button class="btn ghost" type="button" on:click={() => (editing = null)}>取消</button>
     {/if}

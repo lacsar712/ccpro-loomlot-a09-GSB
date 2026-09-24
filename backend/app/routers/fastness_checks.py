@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.auth import get_current_user
 from app.database import get_db
+from app.handover_guard import ensure_no_pending_handover
 from app.models.dye_lot import DyeLot
 from app.models.fastness_check import FastnessCheck
 from app.models.user import User
@@ -34,6 +35,7 @@ def create_check(
     lot = db.query(DyeLot).filter(DyeLot.id == payload.dye_lot_id).first()
     if not lot:
         raise HTTPException(status_code=400, detail="染程不存在")
+    ensure_no_pending_handover(db, "新建色牢度抽检")
     item = FastnessCheck(
         dye_lot_id=payload.dye_lot_id,
         checked_at=payload.checked_at,

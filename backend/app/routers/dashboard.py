@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models.dye_house import DyeHouse
 from app.models.dye_lot import DyeLot
 from app.models.fastness_check import FastnessCheck
+from app.models.night_handover import NightHandover
 from app.models.user import User
 from app.models.vat import Vat
 from app.schemas.dashboard import DashboardStats
@@ -35,6 +36,12 @@ def get_stats(
         checks_last_24h=(
             db.query(func.count(FastnessCheck.id))
             .filter(FastnessCheck.checked_at >= now - timedelta(hours=24))
+            .scalar()
+            or 0
+        ),
+        night_handover_pending_count=(
+            db.query(func.count(NightHandover.id))
+            .filter(NightHandover.confirmed_at.is_(None))
             .scalar()
             or 0
         ),
