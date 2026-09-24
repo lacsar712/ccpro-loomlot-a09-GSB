@@ -8,6 +8,7 @@
     { path: '/vats', label: '染缸', hint: '纤维与容量' },
     { path: '/lots', label: '染程', hint: '配方开缸' },
     { path: '/checks', label: '色牢度', hint: '抽检回写' },
+    { path: '/handovers', label: '夜班交接', hint: '交接班确认' },
   ];
 
   function logout() {

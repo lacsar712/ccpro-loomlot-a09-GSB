@@ -8,6 +8,7 @@ from app.database import get_db
 from app.models.dye_lot import DyeLot
 from app.models.fastness_check import FastnessCheck
 from app.models.user import User
+from app.routers.shift_handovers import ensure_no_pending_handover
 from app.schemas.fastness_check import FastnessCheckCreate, FastnessCheckUpdate, FastnessCheckOut
 
 router = APIRouter(prefix="/api/fastness-checks", tags=["fastness-checks"])
@@ -31,6 +32,7 @@ def create_check(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    ensure_no_pending_handover(db)
     lot = db.query(DyeLot).filter(DyeLot.id == payload.dye_lot_id).first()
     if not lot:
         raise HTTPException(status_code=400, detail="染程不存在")

@@ -10,6 +10,7 @@
   import Vats from './routes/Vats.svelte';
   import DyeLots from './routes/DyeLots.svelte';
   import FastnessChecks from './routes/FastnessChecks.svelte';
+  import Handovers from './routes/Handovers.svelte';
 
   const requireAuth = () => !!get(token);
 
@@ -20,6 +21,7 @@
     '/vats': wrap({ component: Vats, conditions: [requireAuth] }),
     '/lots': wrap({ component: DyeLots, conditions: [requireAuth] }),
     '/checks': wrap({ component: FastnessChecks, conditions: [requireAuth] }),
+    '/handovers': wrap({ component: Handovers, conditions: [requireAuth] }),
   };
 
   function onConditionsFailed() {

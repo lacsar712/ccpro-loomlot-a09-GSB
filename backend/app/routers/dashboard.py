@@ -11,6 +11,7 @@ from app.models.dye_lot import DyeLot
 from app.models.fastness_check import FastnessCheck
 from app.models.user import User
 from app.models.vat import Vat
+from app.routers.shift_handovers import pending_handover_count
 from app.schemas.dashboard import DashboardStats
 
 router = APIRouter(prefix="/api/dashboard", tags=["dashboard"])
@@ -38,4 +39,5 @@ def get_stats(
             .scalar()
             or 0
         ),
+        pending_handover_count=pending_handover_count(db),
     )

@@ -5,6 +5,7 @@ from app.database import SessionLocal
 from app.models.dye_house import DyeHouse
 from app.models.dye_lot import DyeLot
 from app.models.fastness_check import FastnessCheck
+from app.models.shift_handover import ShiftHandover
 from app.models.user import User
 from app.models.vat import Vat
 
@@ -121,6 +122,22 @@ def seed() -> None:
             print("Seed data inserted.")
         else:
             print("Seed skipped (data exists).")
+
+        if db.query(ShiftHandover).count() == 0:
+            now = datetime.now(timezone.utc)
+            dyeing_count = db.query(Vat).filter(Vat.status == "dyeing").count()
+            db.add(
+                ShiftHandover(
+                    handover_by="染程操作员",
+                    successor="染坊主管",
+                    handed_at=now - timedelta(minutes=30),
+                    confirmed_at=None,
+                    dyeing_vat_count=dyeing_count,
+                    notes="夜班交接：V-01 缸靛蓝三浸进行中，每两小时巡缸一次，留意水位。",
+                )
+            )
+            db.commit()
+            print("Seed handover inserted (pending).")
     finally:
         db.close()
 

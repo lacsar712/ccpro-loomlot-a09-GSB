@@ -44,17 +44,28 @@
       <div class="n">{stats.checksLast24h}</div>
       <div class="l">近 24 时抽检</div>
     </div>
+    <div class="stat" class:warn={stats.pendingHandoverCount > 0}>
+      <div class="n">{stats.pendingHandoverCount}</div>
+      <div class="l">待接交接</div>
+    </div>
   </div>
 {/if}
 
 <div class="panel">
   <p style="margin:0 0 0.75rem;color:var(--indigo-mist);font-size:0.9rem;">
-    业务约束：仅当染缸为 <strong>ready</strong> 或 <strong>dyeing</strong> 时可新建染程；新建后染缸自动变为 dyeing。排液可用染缸「完成排液」动作。
+    业务约束：仅当染缸为 <strong>ready</strong> 或 <strong>dyeing</strong> 时可新建染程；新建后染缸自动变为 dyeing。排液可用染缸「完成排液」动作。存在待接夜班交接时，全场暂停新建染程与色牢度抽检，接班确认后恢复。
   </p>
   <div class="toolbar">
     <a class="btn" href="/houses" use:link>进入染坊</a>
     <a class="btn ghost" href="/vats" use:link>管理染缸</a>
     <a class="btn ghost" href="/lots" use:link>登记染程</a>
     <a class="btn ghost" href="/checks" use:link>色牢度抽检</a>
+    <a class="btn ghost" href="/handovers" use:link>夜班交接</a>
   </div>
 </div>
+
+<style>
+  .stat.warn .n {
+    color: var(--warn);
+  }
+</style>

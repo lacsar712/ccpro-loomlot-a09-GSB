@@ -9,6 +9,7 @@ from app.database import get_db
 from app.models.dye_lot import DyeLot
 from app.models.user import User
 from app.models.vat import Vat
+from app.routers.shift_handovers import ensure_no_pending_handover
 from app.schemas.dye_lot import DyeLotCreate, DyeLotUpdate, DyeLotOut
 
 router = APIRouter(prefix="/api/dye-lots", tags=["dye-lots"])
@@ -34,6 +35,7 @@ def create_dye_lot(
     db: Session = Depends(get_db),
     _: User = Depends(get_current_user),
 ):
+    ensure_no_pending_handover(db)
     vat = db.query(Vat).filter(Vat.id == payload.vat_id).first()
     if not vat:
         raise HTTPException(status_code=400, detail="染缸不存在")

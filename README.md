@@ -1,6 +1,6 @@
 # LoomLot-01 · 染坊缸染与色牢度抽检
 
-靛蓝染坊台：按 **染坊 → 染缸 → 染程 → 色牢度** 工序推进，聚焦缸染调度与抽检，不是库存出入库系统。
+靛蓝染坊台：按 **染坊 → 染缸 → 染程 → 色牢度 → 夜班交接** 工序推进，聚焦缸染调度与抽检，不是库存出入库系统。
 
 ## 技术栈
 
@@ -27,7 +27,7 @@
 | `admin` | `123456` | 染坊主管 |
 | `dyer` | `123456` | 染程操作员 |
 
-容器启动时 entrypoint 自动建表并 seed。
+容器启动时 entrypoint 自动建表并 seed。种子数据含 **1 条待接夜班交接**（交班人：染程操作员 → 接班人：染坊主管），因此初始状态下新建染程/抽检会被 409 拦截——请先在「夜班交接」页用 `admin` 确认接班，或删除该交接条。
 
 ## 快速启动
 
@@ -51,12 +51,17 @@ docker compose down
 2. **Vat** — `dyeHouseId`, `vatCode`, `fiberType`, `capacityL`, `status` ∈ `ready|dyeing|drain`
 3. **DyeLot** — `vatId`, `recipeName`, `fabricKg`, `startedAt`, `operatorName`
 4. **FastnessCheck** — `dyeLotId`, `checkedAt`, `washFastness`(1–5), `rubFastness`(>0), `tempC`, `notes`
+5. **ShiftHandover** — `handoverBy`, `successor`, `handedAt`, `confirmedAt`(可空), `dyeingVatCount`(在染缸数快照), `notes`
 
 ### 规则
 
 - 仅当染缸状态为 `ready` 或 `dyeing` 时可新建染程，否则 409
 - 新建染程后，染缸状态自动设为 `dyeing`
 - 可选接口：`POST /api/vats/{id}/drain` 将染缸置为 `drain`
+- 交班人与接班人不得相同（400）
+- `confirmedAt` 为空即「待接」；存在待接交接时，全场禁止新建染程与新建色牢度抽检（409），接班确认后自动恢复
+- 接班确认仅接班人本人或主管（admin）可操作，其他人 403；确认时刻不得早于交班时刻（400）
+- 看板「待接交接」与交接列表待接行数同源统计（`confirmedAt IS NULL`），保证一致
 
 ## 主要 API
 
@@ -66,7 +71,8 @@ docker compose down
 - `GET/POST/PUT/DELETE /api/vats` · `POST /api/vats/{id}/drain`
 - `GET/POST/PUT/DELETE /api/dye-lots`
 - `GET/POST/PUT/DELETE /api/fastness-checks`
-- `GET /api/dashboard/stats`
+- `GET/POST/PUT/DELETE /api/shift-handovers` · `POST /api/shift-handovers/{id}/confirm`
+- `GET /api/dashboard/stats`（含 `pendingHandoverCount` 待接交接数）
 
 除登录外需 `Authorization: Bearer <token>`。字段对外为 camelCase。
 
